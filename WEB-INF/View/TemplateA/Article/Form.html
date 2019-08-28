@@ -1,0 +1,112 @@
+#@layout()
+#define main()
+
+<!-- 配置文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.config.js"></script>
+<!-- 编辑器源码文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.all.js"></script>
+
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wizard/wizard.css'/>
+<script src="/Public/Theme/Ace//wizard/wizard.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wdtree/tree.css'/>
+<script src="/Public/Theme/Ace/wdtree/tree.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/select2/select2.min.css'/>
+<script src="/Public/Theme/Ace/select2/select2.min.js"></script> 
+
+<script>
+UE.delEditor('content');
+var ue = UE.getEditor('content', { initialFrameHeight: 500 });
+var k = $.request("keyValue");
+var arraylist;
+
+$(function () {
+    $.ajax({
+    	type:"post",
+        url: "getFormJson",
+        data: { keyValue: k },
+        dataType: "json",
+        async: false,
+        success: function (data) {
+            arraylist = data;
+            //$("#form1").formSerialize(data);
+        }
+    });
+
+    var vm = new ViewModel();
+    ko.applyBindings(vm);
+});
+
+function ViewModel() {
+    var me = this;
+    me.model = ko.observable(arraylist);
+    //加载下拉列表
+    initControl();
+    me.save = function () {
+        var model = me.model();
+        var keyValue=model.id;
+        var content = UE.getEditor('content').getContent();
+        delete (model.content);
+        model.content = content;
+        if (!$('#form1').formValid()) {
+            return false;
+        }
+        //提交表单数据
+        $ace.post("submitForm", model, function (result) {
+            //console.log("xxxx");
+            history.go(-1);
+        });
+    }
+
+}
+function initControl() {
+    $("#classificationid").bindSelect({
+        url: "getTreeSelectJson",
+    });
+}
+</script>
+
+<div id="form" style="border: 1px solid #ddd;">
+    <form id="form1">
+        <div style="margin-right: 30px;">
+            <table class="form">
+                <tr>
+                    <th class="formTitle">标题</th>
+                    <td class="formValue" colspan="3">
+                        <input id="title" name="title" type="text" class="form-control" data-bind="value:model().title"/>
+                    </td>
+                    <th class="formTitle" style="display:none;">id</th>
+                    <td class="formValue" style="display:none;">
+                        <input id="id" name="id" type="text" class="form-control" data-bind="value:model().id"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">作者</th>
+                    <td class="formValue">
+                    	<input id="author" name="author" type="text" class="form-control" data-bind="value:model().author"/>
+                    </td>
+                    <th class="formTitle">类别</th>
+                    <td class="formValue">
+                    	<select id="classificationid" name="classificationid" class="form-control required" data-bind="value:model().classificationid">
+                            <option value="">==请选择==</option>
+                        </select>
+                    </td>
+                    <th class="formTitle" style="display:none;">创建时间</th>
+                    <td class="formValue" style="display:none;">
+                        <input id="inserttime" name="inserttime" type="text" class="form-control" data-bind="value:model().inserttime"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">内容</th>
+                    <td class="formValue" colspan="3">
+						<textarea id="content" name="content" type="text/plain" style="width: 100%" data-bind="value:model().content"></textarea>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+    <div align="right" style="margin: 5px 30px 5px 0">
+        <a class="layui-layer-btn0 btn btn-primary" data-bind="click:save">确认</a>
+        <a class="layui-layer-btn1 btn btn-danger" onclick="history.go(-1)">返回</a>
+    </div>
+</div>
+#end

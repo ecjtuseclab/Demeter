@@ -1,0 +1,316 @@
+#@layout()
+#define main()
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wizard/wizard.css'/>
+<script src="/Public/Theme/Ace//wizard/wizard.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wdtree/tree.css'/>
+<script src="/Public/Theme/Ace/wdtree/tree.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/select2/select2.min.css'/>
+<script src="/Public/Theme/Ace/select2/select2.min.js"></script> 
+
+ 
+<script>
+    var _vm;
+    $(function () {
+        var vm = new ViewModel();
+        _vm = vm;
+        //vmExtend.call(vm);
+        ko.applyBindings(vm);
+        vm.Init();
+    });
+
+    function ViewModel() {
+        var me = this;
+        ViewModelBase.call(me);
+        vmExtend.call(me);
+
+        me.DeleteUrl = "Action/deleteModels";
+        me.CopyAndPasteUrl = "Action/copyAndPaste";
+        //me.DataTable = new DataTableBase(me);
+        me.Dialog = new Dialog(me);
+        
+        me.DetailDialog = new DetailDialog(me);
+        me.Detail = function () {
+        	me.DetailDialog.Open(me.DataTable.SelectedModel(), "详情");
+        }
+    }
+    function vmExtend() {
+        var me = this;
+
+        me.Init = function () {
+            me.LoadModels();
+        }
+
+        me.LoadModels = function (page) {
+            me.DataTable.SelectedModel(null);
+            var params = me.SearchModel();
+            
+            var CurPage = me.DataTable.CurrentPage();
+            params.page = page || (CurPage === 0 ? 1 : CurPage);
+            params.rows = 20;
+            
+            $ace.get("Action/getModels", params, function (result) {
+            	
+            	console.log(JSON.stringify(result.Data));
+                me.DataTable.SetPagedData(result.Data);
+            }
+          );
+        }
+    }
+    
+  	//详情页对话框设置
+    function DetailDialog() {
+        var me = this;
+        DialogBase.call(me);
+
+        me.OnOpen = function () {
+            //将“保存”按钮隐藏
+            me.ShowSaveButton(false);
+            var model = me.EditModel();
+            if (model) {
+                var bindModel = $ko.toJS(model);
+                me.Model(bindModel);
+            }
+            else {
+                me.Model({});
+            }
+        }
+    }
+  
+    function Dialog(vm) {
+    	var me = this;
+        DialogBase.call(me);
+
+        me.OnOpen = function () 
+        {
+            var model = me.EditModel();
+            if (model) 
+            {
+                var bindModel = $ko.toJS(model);
+                me.Model(bindModel);
+            }
+            else 
+            {
+                //me.Model({ IsEnabled: true });
+            } 
+            //加载“动作所属”下拉列表
+            $("#actionowner").bindSelect({
+                url: "Action/getTreeSelectJson",
+            });
+        }
+        //点击保存
+        me.OnSave = function () 
+        {
+            //实体
+            var model = me.Model();
+            if (!$('#form1').formValid()) 
+            {
+                return false;
+            }
+            //提交表单数据
+            if (me.EditModel())
+            {
+                $ace.post("Action/updateModels", model, function (result) 
+                {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                }
+               );
+            }
+            else 
+            {
+                $ace.post("Action/addModels", model, function (result) 
+                {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                });
+            }
+        }
+    }
+    
+    jQuery(function($) {
+    	var me = this;
+    	
+		//me.dataTable({
+		//	"aoColumns": [{ "bSortable": false },null, null,null, null, null,{ "bSortable": false }]
+		//});				
+	})
+	
+</script>
+
+<div class="topPanel">
+    <div class="toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" onclick="$ace.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="btn-group">
+     		<button class="btn btn-primary" data-bind="click:Add"><i class="fa fa-plus"></i>新增动作</button>
+            <button class="btn btn-primary" data-bind="click:Edit,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>修改动作</button>
+            <button class="btn btn-primary" data-bind="click:Delete,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-trash-o"></i>删除动作</button>
+            <button class="btn btn-primary" data-bind="click:CopyAndPaste,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>复制粘贴</button>
+            <button class="btn btn-primary" data-bind="click:Detail,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>查看详情</button>          
+        </div>
+    </div>
+    <div class="search">
+        <table>
+            <tr>
+                <td>
+                    <div class="input-group">
+                        <input id="txt_keyword" type="text" class="form-control" placeholder="名称/编号" style="width: 200px;" data-bind="value:SearchModel().keyword">
+                        <span class="input-group-btn">
+                            <button id="btn_search" type="button" class="btn  btn-primary" data-bind="click:Search"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover" data-bind="with:DataTable">
+        <thead>
+            <tr>
+                <th style="width: 20px;"></th>
+                <th class="sorting">主键</th>
+                <th>动作名称</th>
+                <th>动作编号</th>
+                <th>动作所属</th>
+                <th>动作类型</th>
+                <th>动作地址</th>                  
+                <th>动作参数</th>
+           		<th>控制器名称</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach:Models">
+            <tr data-bind="click:$parent.SelectRow">
+                <td data-bind="text:$parent.GetOrdinal($index())"></td>
+                <td data-bind="text:id"></td>
+                <td data-bind="text:actionname"></td>
+                <td data-bind="text:actioncode"></td>
+                <td data-bind="text:actionowner"></td>
+                <td data-bind="text:actiontype"></td>
+                <td data-bind="text:actionurl"></td>
+                <td data-bind="text:actionparam"></td>
+                <td data-bind="text:controllername"></td>                
+            </tr>
+        </tbody>   
+        <!--分页 -->
+        #include("/WEB-INF/View/TemplateA/tfoot.html")  
+    </table>
+</div>
+
+#include("/WEB-INF/View/TemplateA/Shared/dialogHead.html")
+<form id="form1">
+            <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">表单信息</h3>
+                    </div>
+                    <div class="panel-body" style="width: 98%;">
+                        <table class="form">
+                            <tr>
+                                <th class="formTitle">动作名称</th>
+                                <td class="formValue">
+                                    <input id="actionname" name="actionname" type="text" class="form-control required" placeholder="动作名称" data-bind="value:Model().actionname" />
+                                </td>
+                                <th class="formTitle">动作类型</th>
+                                <td class="formValue">
+                                   
+                                    <select id="actiontype" name="actiontype" class="form-control required" data-bind="value:Model().actiontype">
+                                        <option value="">==请选择==</option>
+                                        <option value="1" title="1">菜单默认动作</option>
+                                        <option value="2" title="2">特定工作流动作</option>
+                                        <option value="3" title="3">控制器动作</option>
+                                        <option value="4" title="4">通用工作流动作</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">动作所属</th>
+                                <td class="formValue">
+                                    <select id="actionowner" name="actionowner" class="form-control required" placeholder="动作所属" data-bind="value:Model().actionowner">
+                                         <option value="0">无上级</option>
+                                    </select>
+                                </td>
+                                <th class="formTitle">动作编码</th>
+                                <td class="formValue">
+                                    <input id="actioncode" name="actioncode" type="text" class="form-control required" placeholder="动作编码" data-bind="value:Model().actioncode" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">动作路径</th>
+                                <td class="formValue">
+                                    <input id="actionurl" name="actionurl" type="text" class="form-control required" placeholder="动作路径" data-bind="value:Model().actionurl" />
+                                </td>
+                                <th class="formTitle">动作参数</th>
+                                <td class="formValue">
+                                    <input id="actionparam" name="actionparam" type="text" class="form-control required" placeholder="动作参数" data-bind="value:Model().actionparam" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle" valign="top" style="padding-top: 5px;">控制器名称</th>
+                                <td class="formValue" colspan="3">
+                                    <input id="controllername" name="controllername" type="text" class="form-control required" placeholder="控制器名称" data-bind="value:Model().controllername" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+#include("/WEB-INF/View/TemplateA/Shared/dialogFoot.html")
+
+#include("/WEB-INF/View/TemplateA/Shared/detailDialogHead.html")
+	<form id="Detailform">
+            <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">表单信息</h3>
+                    </div>
+                    <div class="panel-body" style="width: 98%;">
+                        <table class="form">
+                            <tr>
+                                <th class="formTitle">动作名称</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().actionname"></label>
+                                </td>
+                                <th class="formTitle">动作类型</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().actiontype"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">动作所属</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().actionowner"></label>
+                                </td>
+                                <th class="formTitle">动作编码</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().actioncode"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">动作路径</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().actionurl"></label>
+                                </td>
+                                <th class="formTitle">动作参数</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().actionparam"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle" valign="top" style="padding-top: 5px;">控制器名称</th>
+                                <td class="formValue" colspan="3">
+                                    <label class="form-control" data-bind="text:Model().controllername"></label>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>  
+#include("/WEB-INF/View/TemplateA/Shared/detailDialogFoot.html")
+#end

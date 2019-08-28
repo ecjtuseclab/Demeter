@@ -1,0 +1,233 @@
+#@layout()
+#define main()
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wizard/wizard.css'/>
+<script src="/Public/Theme/Ace//wizard/wizard.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wdtree/tree.css'/>
+<script src="/Public/Theme/Ace/wdtree/tree.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/select2/select2.min.css'/>
+<script src="/Public/Theme/Ace/select2/select2.min.js"></script> 
+
+<script>
+	//var actionList={$actionList};
+</script>
+<script>
+    var _vm;
+    $(function () {
+        var vm = new ViewModel();
+        _vm = vm;
+        //vmExtend.call(vm);
+        ko.applyBindings(vm);
+        vm.Init();
+    });
+
+    function ViewModel() {
+        var me = this;
+        ViewModelBase.call(me);
+        vmExtend.call(me);
+
+        me.DeleteUrl = "Group/deleteModels";
+        me.CopyAndPasteUrl = "Group/copyAndPaste";
+        //me.DataTable = new DataTableBase(me);
+        me.Dialog = new Dialog(me);
+        
+        me.DetailDialog = new DetailDialog(me);
+        me.Detail = function () {
+        	me.DetailDialog.Open(me.DataTable.SelectedModel(), "详情");
+        }
+    }
+    function vmExtend() {
+        var me = this;
+
+        me.Init = function () {
+            me.LoadModels();
+        }
+
+        me.LoadModels = function (page) {
+            me.DataTable.SelectedModel(null);
+            var params = me.SearchModel();
+            
+            var CurPage = me.DataTable.CurrentPage();
+            params.page = page || (CurPage === 0 ? 1 : CurPage);
+            params.rows = 20;
+            
+            $ace.get("Group/getModels", params, function (result) {
+            	//console.log(result.Data);
+                me.DataTable.SetPagedData(result.Data);
+            }
+          );
+        }
+    }
+    
+  	//详情页对话框设置
+    function DetailDialog() {
+        var me = this;
+        DialogBase.call(me);
+
+        me.OnOpen = function () {
+            //将“保存”按钮隐藏
+            me.ShowSaveButton(false);
+            var model = me.EditModel();
+            if (model) {
+                var bindModel = $ko.toJS(model);
+                me.Model(bindModel);
+            }
+            else {
+                me.Model({});
+            }
+        }
+    }
+  
+    function Dialog(vm) {
+    	var me = this;
+        DialogBase.call(me);
+
+        me.OnOpen = function () {
+            var model = me.EditModel();
+            if (model) {
+                var bindModel = $ko.toJS(model);
+                me.Model(bindModel);
+            }
+            else {
+                //me.Model({ IsEnabled: true });
+            }
+
+            //加载“动作所属”下拉列表
+            $("#Groupowner").bindSelect({
+                url: "Group/getTreeSelectJson",
+            });
+        }
+        //点击保存
+        me.OnSave = function () {
+            //实体
+            var model = me.Model();
+            if (!$('#form1').formValid()) {
+                return false;
+            }
+            //提交表单数据
+            if (me.EditModel()) {
+                $ace.post("Group/updateModels", model, function (result) {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                }
+               );
+            }
+            else {
+                $ace.post("Group/addModels", model, function (result) {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                }
+             );
+            }
+        }
+    }
+    
+    jQuery(function($) {
+    	var me = this;
+    	
+		//me.dataTable({
+		//	"aoColumns": [{ "bSortable": false },null, null,null, null, null,{ "bSortable": false }]
+		//});				
+	})
+	
+</script>
+
+<div class="topPanel">
+    <div class="toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" onclick="$ace.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="btn-group">
+     		<button class="btn btn-primary" data-bind="click:Add"><i class="fa fa-plus"></i>新增分组</button>
+            <button class="btn btn-primary" data-bind="click:Edit,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>修改分组</button>
+            <button class="btn btn-primary" data-bind="click:Delete,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-trash-o"></i>删除分组</button>
+            <button class="btn btn-primary" data-bind="click:CopyAndPaste,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>复制粘贴</button>
+            <button class="btn btn-primary" data-bind="click:Detail,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>查看详情</button>          
+        </div>
+    </div>
+    <div class="search">
+        <table>
+            <tr>
+                <td>
+                    <div class="input-group">
+                        <input id="txt_keyword" type="text" class="form-control" placeholder="名称/编号" style="width: 200px;" data-bind="value:SearchModel().keyword">
+                        <span class="input-group-btn">
+                            <button id="btn_search" type="button" class="btn  btn-primary" data-bind="click:Search"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover" data-bind="with:DataTable">
+        <thead>
+            <tr>
+                <th>序号</th>
+                <th>组名</th>
+                <th>编码</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach:Models">
+            <tr data-bind="click:$parent.SelectRow">
+                <td data-bind="text:$index()+1"></td>
+                <td data-bind="text:groupname"></td>
+                <td data-bind="text:groupcode"></td>
+            </tr>
+        </tbody>  
+        <!--分页 -->
+        #include("/WEB-INF/View/TemplateA/tfoot.html")  
+    </table>
+</div>
+
+#include("/WEB-INF/View/TemplateA/Shared/dialogHead.html")
+<form id="form1">
+        <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+            <div style="padding-top: 20px; margin-right: 30px;">
+                <table class="form">
+                    <tr>
+                        <td class="formTitle">组名</td>
+                        <td class="formValue">
+                            <input id="groupname" name="groupname" type="text" class="form-control required" placeholder="请输入组名" data-bind="value:Model().groupname" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="formTitle">编码</td>
+                        <td class="formValue">
+                            <input id="groupcode" name="groupcode" type="text" class="form-control required" placeholder="请输入编码" data-bind="value:Model().groupcode" />
+                        </td>
+                    </tr>
+     
+                </table>
+            </div>
+        </div>
+    </form>
+#include("/WEB-INF/View/TemplateA/Shared/dialogFoot.html")
+
+#include("/WEB-INF/View/TemplateA/Shared/detailDialogHead.html")
+	<form id="Detailform">
+            <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+            <div style="padding-top: 20px; margin-right: 30px;">
+                <table class="form">
+                    <tr>
+                        <td class="formTitle">组名</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().groupname"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="formTitle">编码</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().groupcode"></label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        </form>  
+#include("/WEB-INF/View/TemplateA/Shared/detailDialogFoot.html")
+#end

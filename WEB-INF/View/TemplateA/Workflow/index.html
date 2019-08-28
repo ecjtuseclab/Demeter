@@ -1,0 +1,348 @@
+
+<script>
+
+    var _vm;
+    $(function () {
+        var vm = new ViewModel();
+        _vm = vm;
+        ko.applyBindings(vm);
+        vm.Init();
+    });
+    function ViewModel() {
+        var me = this;
+        ViewModelBase.call(me);
+        vmExtend.call(me);
+        me.DeleteUrl = "delete";
+        //me.DataTable = new DataTableBase(me);
+        me.Dialog = new Dialog(me);
+        //详情页面
+        //详情页
+        me.DetailDialog = new DetailDialog(me);
+        me.Detail = function ()
+        {
+        me.DetailDialog.Open(me.DataTable.SelectedModel(), "详情");
+        }
+        me.ProcessDesign= function (me)
+        {
+            
+            var smodel = me.DataTable.SelectedModel(); 
+            window.location.href="workflowVisualization?wfid="+$ko.toJS(smodel).id;
+        }
+    }
+    function vmExtend() {
+        var me = this;
+
+        me.Init = function () {
+            me.LoadModels();
+        }
+
+        me.LoadModels = function (page) {
+            me.DataTable.SelectedModel(null);
+            var params = me.SearchModel();
+            params.page = page || 1;
+            $ace.get("getModels", params, function (result) {
+                me.DataTable.SetPagedData(result.Data);
+            }
+          );
+        }
+    }
+
+    //详情页对话框设置
+    function DetailDialog() {
+        var me = this;
+        DialogBase.call(me);
+
+        me.OnOpen = function () {
+            //将“保存”按钮隐藏
+            me.ShowSaveButton(false);
+            var model = me.EditModel();
+            if (model) {
+                var bindModel = $ko.toJS(model);
+                me.Model(bindModel);
+            }
+            else {
+                me.Model({});
+            }
+        }
+    }
+
+    function Dialog(vm) {
+        var me = this;
+        DialogBase.call(me);
+
+
+        me.OnSave = function () 
+        {
+            var model = me.Model();
+
+            if (!$('#form1').formValid()) {
+                return false;
+            }
+
+            if (me.EditModel()) {
+                $ace.post("submit", model, function (result) {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                }
+               );
+            }
+            else {
+                $ace.post("submit", model, function (result) {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                }
+             );
+            }
+        }
+    }
+</script>
+<div class="topPanel">
+    <div class="toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" onclick="$ace.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" data-bind="click:ProcessDesign,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>设计流程</button>
+          <button class="btn btn-primary" data-bind="click:Edit,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>修改</button>
+          <button class="btn btn-primary" data-bind="click:Delete,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-trash-o"></i>删除</button>
+          <button class="btn btn-primary" data-bind="click:Add"><i class="fa fa-plus"></i>添加</button>
+          <button class="btn btn-primary" data-bind="click:Detail,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>详情</button>
+
+        </div>
+    </div>
+    <div class="search">
+        <table>
+            <tr>
+                <td>
+                    <div class="input-group">
+                        <input id="txt_keyword" type="text" class="form-control" placeholder="名称/编号" style="width: 200px;" data-bind="value:SearchModel().keyword">
+                        <span class="input-group-btn">
+                            <button id="btn_search" type="button" class="btn  btn-primary" data-bind="click:Search"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover" data-bind="with:DataTable">
+        <thead>
+            <tr>
+                <th  >序号</th>
+                <th style="display:none">id</th>
+                <th>工作流名称</th>
+                <th>工作描述</th>
+                <th>工作流业务表</th>
+                <th>业务表字段</th>
+                <th>工作流映射表</th>
+                <th>工作流状态</th>
+                <th>锁定状态</th>
+                
+                <th>开始时间</th>
+                <th>结束时间</th>
+            </tr>
+        </thead>
+
+        <tbody data-bind="foreach:Models">
+            <tr data-bind="click:$parent.SelectRow">
+                <td   data-bind="text:$parent.GetOrdinal($index())"></td>
+                <td style="display:none" data-bind="text:id"></td>
+                <td data-bind="text:wfname"></td>
+                <td data-bind="text:wfmemo"></td>
+                <td data-bind="text:wfownertable"></td>
+                  <td data-bind="text:wffieldname"></td>
+                <td data-bind="text:wfinstancestable"></td>
+                <td data-bind="text:wfstatus()==1?'已启用':'未启用'"></td>
+                <td data-bind="text:wflock()==1?'未锁定':'锁定'"></td> 
+                <td data-bind="dateString:wfbegintime"></td>
+                <td data-bind="dateString:wfstoptime"></td>
+            </tr>
+        </tbody>
+   		 <!--分页 -->
+         <tfoot>
+		    <tr>
+		        <td colspan="999" align="center">
+		            <div class="fx-page">
+		                <!-- ko if: CurrentPage()!=1 -->
+		                <a class="fx-page-span" href="javascript:;" data-bind="click:ToPage.bind($data,CurrentPage()-1)">上一页</a>
+		                <!-- /ko -->
+		                <!-- ko if: ShowFirstPage() -->
+		                <a class="fx-page-span" href="javascript:;" title="首页" data-bind="click:ToPage.bind($data,1),text:1"></a>
+		                <span class="fx-page-span">...</span>
+		                <!-- /ko -->
+		                <!-- ko foreach:ShowPages -->
+		                <!-- ko if: $data==$parent.CurrentPage() -->
+		                <span class="fx-page-span fx-page-curr" data-bind="text:$data"></span>
+		                <!-- /ko -->
+		                <!-- ko if: $data!=$parent.CurrentPage() -->
+		                <a class="fx-page-span" href="javascript:;" data-bind="click:$parent.ToPage.bind($data,$data),text:$data"></a>
+		                <!-- /ko -->
+		                <!-- /ko -->
+		                <!-- ko if: ShowLastPage() -->
+		                <span class="fx-page-span">...</span>
+		                <a class="fx-page-span" href="javascript:;" title="尾页" data-bind="click:ToPage.bind($data,TotalPage()),text:TotalPage()"></a>
+		                <!-- /ko -->
+		                <!-- ko if: CurrentPage()<TotalPage() -->
+		                <a class="fx-page-span" href="javascript:;" data-bind="click:ToPage.bind($data,parseInt(CurrentPage())+1)">下一页</a>
+		                <!-- /ko -->
+		
+		                <span class="fx-page-total">&nbsp;共<span class="fx-page-total" data-bind="text:TotalCount"></span>条</span>
+		
+		                <span class="fx-page-total">到第<input type="number" min="1" onkeyup="this.value=this.value.replace(/\D/, '');" data-bind="value:SkipPage">页 <button type="button" class="fx-page-btn" data-bind="click:ToPage.bind($data,SkipPage())">确定</button></span>
+		            </div>
+		        </td>
+		    </tr>
+		</tfoot>
+
+    </table>
+</div>
+
+
+{$DialogHead}
+    <form id="form1">
+        <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+            <div style="padding-top: 20px; margin-right: 30px;">
+                <table class="form"> 
+                    <tr>
+                        <td class="formTitle">工作流名称</td>
+                        <td class="formValue">
+                            <input id="wfname" name="wfname" type="text" class="form-control" data-bind="value:Model().wfname" />
+                        </td>                       
+                    </tr>
+                    <tr>
+                       <td class="formTitle">工作流描述</td>
+                        <td class="formValue">
+                            <input id="wfmemo" name="wfmemo" type="text" class="form-control" data-bind="value:Model().wfmemo" />
+                        </td> 
+                    </tr>
+                    <tr>
+                       <td class="formTitle">工作流业务表</td>
+                        <td class="formValue">
+                            <input id="wfownertable" name="wfownertable" type="text" class="form-control" data-bind="value:Model().wfownertable" />
+                        </td> 
+                    </tr>
+                     <tr>
+                       <td class="formTitle">业务表工作流字段</td>
+                        <td class="formValue">
+                            <input id="wffieldname" name="wffieldname" type="text" class="form-control" data-bind="value:Model().wffieldname" />
+                        </td> 
+                    </tr>
+                    <tr>                        
+                        <td class="formTitle">实体映射表</td>
+                        <td class="formValue">
+                            <input id="wfinstancestable" name="wfinstancestable" type="text" class="form-control" data-bind="value:Model().wfinstancestable" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="formTitle">工作流状态</td>
+                        <td class="formValue">
+                       
+                             <select id="wfstatus" name="wfstatus" class="form-control " data-bind="value:Model().wfstatus">
+                            <option value="1" selected="selected" >已启用</option>
+                            <option value="2">未启用</option>
+                        </select>
+                        </td>                       
+                    </tr>
+                    <tr>
+                        <td class="formTitle">锁定状态</td>
+                        <td class="formValue">
+                            <select id="wflock" name="wflock" class="form-control " data-bind="value:Model().wflock">
+                            <option value="1" selected="selected" >未锁定</option>
+                            <option value="2">已锁定</option>
+                             </select>
+                        </td>                       
+                    </tr>
+                    
+                     <tr>
+                       <td class="formTitle">开始时间</td>
+                        <td class="formValue">
+                            <input id="wfbegintime" name="wfbegintime" type="text" class="form-control input-wdatepicker Wdate" onclick="WdatePicker({ dateFmt: 'yyyy-MM-dd' })" data-bind="value:Model().wfbegintime" />
+                        </td> 
+                    </tr>
+                     <tr>
+                       <td class="formTitle">结束时间</td>
+                        <td class="formValue">
+                            <input id="wfstoptime" name="wfstoptime" type="text" class="form-control input-wdatepicker Wdate" onclick="WdatePicker({ dateFmt: 'yyyy-MM-dd' })" data-bind="value:Model().wfstoptime" />
+                        </td> 
+                    </tr>
+                     <tr style="display:none">
+                       <td class="formTitle">工作流可视化JSON</td>
+                        <td class="formValue">
+                            <input id="wfjsonstr" name="wfjsonstr" type="text" class="form-control input-wdatepicker Wdate"   data-bind="value:Model().wfjsonstr" />
+                        </td> 
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </form>
+{$DialogFoot}
+
+{$DetailDialogHead}
+       <form id="DetailForm">
+        <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+            <div style="padding-top: 20px; margin-right: 30px;">
+                <table class="form">
+                    <tr>
+                        <td class="formTitle">名称：</td>
+                        <td class="formValue">
+                           <label class="form-control" data-bind="text:Model().wfname"></label>
+                        </td>
+                        <td class="formTitle">工作流描述:</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().wfmemo"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="formTitle">标识：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().wfflag"></label>
+                        </td>
+                        <td class="formTitle">业务表：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().wfownertable"></label>
+                        </td>
+                    </tr>
+                  <tr>
+                        <td class="formTitle">工作流字段：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().wffieldname"></label>
+                        </td>
+                        <td class="formTitle">影子表：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().wfinstancestable"></label>
+                        </td>
+                    </tr>
+
+                        <tr>
+                        <td class="formTitle">状态：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().wfstatus==1?'已启用':'未启用'"></label>
+                        </td>
+                        <td class="formTitle">锁定状态：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="text:Model().wflock==1?'未锁定':'锁定' "></label>
+                        </td>
+                    </tr>
+                            <tr>
+                        <td class="formTitle">开始时间：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="dateString:Model().wfbegintime"></label>
+                        </td>
+                        <td class="formTitle">结束时间：</td>
+                        <td class="formValue">
+                            <label class="form-control" data-bind="dateString:Model().wfstoptime"></label>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </form>
+{$DetailDialogFoot}
+
+
+ 
+ 

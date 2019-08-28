@@ -1,0 +1,192 @@
+#@layout()
+#define main()
+    <script>
+        $(function () {
+            gridList();
+        });
+        function gridList() {
+        	//高级查询模板
+        	 var template1 =
+             {
+                 "groupOp": "AND",
+                 "rules": [
+                 { "field": "id", "op": "ne", "data": "73" },
+                 { "field": "propertyname", "op": "cn", "data": "1" }
+                 ]
+             };
+
+             var template2 =
+             {
+                 "groupOp": "AND",
+                 "rules": [
+                   { "field": "propertyname", "op": "eq", "data": "s" }
+                 ]
+             };
+             
+            var $gridList = $("#gridList");
+            $gridList.dataGrid({
+                url: "PropertyMapping/getModels",
+                height: $(window).height() - 126,
+                //pager: 'pager',
+                //rowList: [10, 20, 30], //可调整每页显示的记录数   
+                //rowNum: 40,
+                pager: "#gridPager",
+                sortname: 'id',
+               	//search:true,
+                viewrecords: true,
+                colModel: [
+                    { label: "主键", name: "id", width:50,hidden: false, key: true },
+                    { label: '字典名称', name: 'propertyname', width: 150, align: 'left' },
+                    { label: '字典值', name: 'propertyvalue', width: 150, align: 'left' },
+                    { label: '字典含义', name: 'propertymeaning', width: 150, align: 'left',},
+                    { label: '备注', name: 'remark', width: 150, align: 'left',},
+                    { label: '上级', name: 'parentid', width: 150, align: 'left' }
+                ]
+            });
+            
+           	$gridList.jqGrid('navGrid', '#gridPager',
+            		{edit: false, add: false, del: false },
+            		{},//edit options
+            		{},//add options
+            		{},//del options
+            		{  //search options
+            			beforeSearch:function(data){
+            				console.log(data);
+            				alert(data);
+            			},
+            			multipleSearch: true,
+            			multipleGroup: true,
+            			showQuery: true,
+            			// set the names of the template
+            			"tmplNames": ["模板一", "模板二"],
+            			// set the template contents
+            			"tmplFilters": [template1, template2]
+            		});
+            
+            $("#btn_search").click(function () {
+            	var query = $(".query").val();
+                $gridList.jqGrid('setGridParam', {
+                    postData: { keyword: $("#txt_keyword").val() },
+                }).trigger('reloadGrid');
+            });
+            
+            $("#fbox_gridList_search").click(function () {
+            	var query = $(".query").val();
+                $gridList.jqGrid('setGridParam', {
+                    postData: { keyword: $("#txt_keyword").val() },
+                }).trigger('reloadGrid');
+            });
+        }
+        
+        function btn_add() {
+            $.modalOpen({
+                id: "Form",
+                title: "新增字典",
+                url: "PropertyMapping/getFormPage",
+                width: "700px",
+                height: "510px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].submitForm();
+                }
+            });
+        }
+        
+        function btn_edit() {
+            var id = $("#gridList").jqGridRowValue().id;
+            $.modalOpen({
+                id: "Form",
+                title: "修改字典",
+                url: "PropertyMapping/getFormPage?id=" + id,
+                width: "700px",
+                height: "510px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].submitForm();
+                }
+            });
+        }
+        
+        function btn_delete() {
+            $.deleteForm({
+                url: "PropertyMapping/deleteModels",
+                param: { id: $("#gridList").jqGridRowValue().id },
+                success: function (data) {
+                    $.currentWindow().$("#gridList").resetSelection();
+                    $.currentWindow().$("#gridList").trigger("reloadGrid");
+                },
+                error:function(data){
+                	console.log(data);
+                }
+            })
+        }
+
+        function btn_details() {
+            var id = $("#gridList").jqGridRowValue().id;
+            $.modalOpen({
+                id: "Details",
+                title: "查看字典",
+                url: "PropertyMapping/getDetails?id=" + id,
+                width: "700px",
+                height: "510px",
+                btn: null,
+            });
+        }
+        function btn_copyandpaste() {
+        	console.log("ids="+$("#gridList").jqGridRowValue().id);
+            $.copyAndPasteForm({
+                url: "PropertyMapping/copyAndPaste?ids="+ $("#gridList").jqGridRowValue().id,
+                //param: { ids: $("#gridList").jqGridRowValue().id },
+                success: function (data) {
+                    $.currentWindow().$("#gridList").trigger("reloadGrid");
+                },
+                error:function(data){
+                	console.log(data);
+                }
+            })
+        }
+</script>
+
+
+<div class="topPanel">
+	<div class="search">
+        <table>
+            <tr>
+                <td style="padding-right: 3px;">
+                    <div class="btn-group">
+                        <a class="btn btn-primary dropdown-text" onclick="advance_search()">高级查询</a>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input id="txt_keyword" type="text" class="form-control" placeholder="请输入要查询的关键字" style="width: 200px;">
+                        <span class="input-group-btn">
+                            <button id="btn_search" type="button" class="btn  btn-primary"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" onclick="$.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="btn-group">
+            <a id="add" authorize="yes" class="btn btn-primary" onclick="btn_add()"><i class="fa fa-plus"></i>新建字典</a>
+        </div>
+        <div class="operate">
+            <ul class="nav nav-pills">
+                <li class="first">已选中<span>1</span>项</li>
+                <li><a id="edit" authorize="yes" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>修改字典</a></li>
+                <li><a id="delete" authorize="yes" onclick="btn_delete()"><i class="fa fa-trash-o"></i>删除字典</a></li>
+                   <li><a id="NF-Details" authorize="yes" onclick="btn_details()"><i class="fa fa-search-plus"></i>查看字典</a></li>
+                <li><a id="NF-copyAndPaste"  onclick="btn_copyandpaste()"><i class="fa fa-search-plus"></i>复制粘贴</a></li>
+            </ul>
+            <a href="javascript:;" class="close"></a>
+        </div>
+    </div>
+</div>
+<div class="gridPanel">
+    <table id="gridList"></table>
+     <div id="gridPager" class="scroll"></div> 
+</div>
+#end

@@ -1,0 +1,385 @@
+#@layout()
+#define main()
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wizard/wizard.css'/>
+<script src="/Public/Theme/Ace//wizard/wizard.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wdtree/tree.css'/>
+<script src="/Public/Theme/Ace/wdtree/tree.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/select2/select2.min.css'/>
+<script src="/Public/Theme/Ace/select2/select2.min.js"></script> 
+
+<script>
+    var _vm;
+    $(function () {
+        var vm = new ViewModel();
+        _vm = vm;
+        //vmExtend.call(vm);
+        ko.applyBindings(vm);
+        vm.Init();
+    });
+
+    function ViewModel() {
+        var me = this;
+        ViewModelBase.call(me);
+        vmExtend.call(me);
+
+        me.DeleteUrl = "Resource/deleteModels";
+        me.CopyAndPasteUrl = "Resource/copyAndPaste";
+        //me.DataTable = new DataTableBase(me);
+        me.Dialog = new Dialog(me);
+        //详情页
+        me.DetailDialog = new DetailDialog(me);
+        me.Detail = function () {
+        	me.DetailDialog.Open(me.DataTable.SelectedModel(), "详情");
+        }
+    }
+    function vmExtend() {
+        var me = this;
+
+        me.Init = function () {
+            me.LoadModels();
+        }
+
+        me.LoadModels = function (page) {
+            me.DataTable.SelectedModel(null);
+            var params = me.SearchModel();
+            
+            var CurPage = me.DataTable.CurrentPage();
+            params.page = page || (CurPage === 0 ? 1 : CurPage);
+            params.rows = 20;
+            
+            $ace.get("Resource/getModels", params, function (result) {
+            	//console.log(result.Data);
+                me.DataTable.SetPagedData(result.Data);
+            }
+          );
+        }
+    }
+    
+  	//详情页对话框设置
+    function DetailDialog() {
+        var me = this;
+        DialogBase.call(me);
+
+        me.OnOpen = function () {
+            //将“保存”按钮隐藏
+            me.ShowSaveButton(false);
+            var model = me.EditModel();
+            if (model) {
+                var bindModel = $ko.toJS(model);
+                me.Model(bindModel);
+            }
+            else {
+                me.Model({});
+            }
+        }
+    }
+  
+    function Dialog(vm) {
+    	var me = this;
+        DialogBase.call(me);
+
+        me.OnOpen = function () {
+            var model = me.EditModel();
+            if (model) {
+                var bindModel = $ko.toJS(model);
+                me.Model(bindModel);
+            }
+            else {
+                //me.Model({ IsEnabled: true });
+            }
+
+            //加载“动作所属”下拉列表
+            $("#resourceowner").bindSelect({
+                url: "Resource/getTreeSelectJson",
+            });
+        }
+        //点击保存
+        me.OnSave = function () {
+            //实体
+            var model = me.Model();
+            if (!$('#form1').formValid()) {
+                return false;
+            }
+            //提交表单数据
+            if (me.EditModel()) {
+                $ace.post("Resource/updateModels", model, function (result) {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                }
+               );
+            }
+            else {
+                $ace.post("Resource/addModels", model, function (result) {
+                    $ace.msg(result.Msg);
+                    me.Close();
+                    vm.LoadModels();
+                }
+             );
+            }
+        }
+    }
+    
+    jQuery(function($) {
+    	var me = this;
+    				
+	})
+	
+</script>
+
+<div class="topPanel">
+    <div class="toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" onclick="$ace.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="btn-group">
+     		<button class="btn btn-primary" data-bind="click:Add"><i class="fa fa-plus"></i>新增</button>
+            <button class="btn btn-primary" data-bind="click:Edit,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>修改</button>
+            <button class="btn btn-primary" data-bind="click:Delete,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-trash-o"></i>删除</button>
+            <button class="btn btn-primary" data-bind="click:CopyAndPaste,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>复制粘贴</button>
+            <button class="btn btn-primary" data-bind="click:Detail,attr:{disabled:!DataTable.SelectedModel()}"><i class="fa fa-pencil-square-o"></i>查看详情</button>          
+        </div>
+    </div>
+    <div class="search">
+        <table>
+            <tr>
+                <td>
+                    <div class="input-group">
+                        <input id="txt_keyword" type="text" class="form-control" placeholder="名称/编号" style="width: 200px;" data-bind="value:SearchModel().keyword">
+                        <span class="input-group-btn">
+                            <button id="btn_search" type="button" class="btn  btn-primary" data-bind="click:Search"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-hover" data-bind="with:DataTable">
+        <thead>
+            <tr>
+                <th style="width: 20px;"></th>
+                <th class="sorting">id</th>
+                <th>资源名称</th>
+                <th>资源类型</th>
+                <th>上级</th>
+                <th>路径</th>
+                <th>排序</th>
+                <th>级别</th>
+                <th>左图标</th>
+                <th>右图标</th>
+                <th>样式</th>
+                <th>提示数</th>
+                <th>脚本</th>
+                <th>备注</th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach:Models">
+            <tr data-bind="click:$parent.SelectRow">
+                <td data-bind="text:$parent.GetOrdinal($index())"></td>
+                <td data-bind="text:id"></td>
+                <td data-bind="text:resourcename"></td>
+                <td data-bind="text:resourcetype"></td>
+                <td data-bind="text:resourceowner"></td>
+                <td data-bind="text:resourceurl"></td>
+                <td data-bind="text:ordernum"></td>
+                <td data-bind="text:resourcelevel"></td>
+                
+                <td data-bind="text:resourceleftico"></td>
+                <td data-bind="text:resourcerightico"></td>
+                <td data-bind="text:resourceclass"></td>
+                <td data-bind="text:resourcenumber"></td>
+                <td data-bind="text:resourcescript"></td>
+                <td data-bind="text:description"></td>
+            </tr>
+        </tbody>   
+        <!--分页 -->
+        #include("/WEB-INF/View/TemplateA/tfoot.html")  
+    </table>
+</div>
+#include("/WEB-INF/View/TemplateA/Shared/dialogHead.html")
+<form id="form1">
+            <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">表单信息</h3>
+                    </div>
+                    <div class="panel-body" style="width: 98%;">
+                        <table class="form">
+                            <tr>
+                               <td class="formTitle">名称</td>
+		                       <td class="formValue">
+		                            <input id="resourcename" name="resourcename" type="text" class="form-control required" placeholder="请输入名称" data-bind="value:Model().resourcename" />
+		                       </td>
+                                <th class="formTitle">类型</th>
+                                <td class="formValue">
+	                                 <select id="resourcetype" name="resourcetype" class="form-control required" data-bind="value:Model().resourcetype">
+			                               <option value="">==请选择==</option>
+			                               <option value="1" title="1">菜单</option>
+			                               <option value="2" title="2">工具条</option>
+			                               <option value="3" title="3">按钮</option>
+			                               <option value="4" title="4">脚本</option>
+			                               <option value="5" title="5">文件</option>
+			                          </select>
+                                </td>
+                            </tr>
+                            <tr>
+                           	<th class="formTitle">上级</th>
+                                <td class="formValue">
+                                    <select id="resourceowner" name="resourceowner" class="form-control" placeholder="上级" data-bind="value:Model().resourceowner">
+                                         <option value="0">无上级</option>
+                                    </select>
+                                </td>
+                                <th class="formTitle">级别</th>
+                                <td class="formValue">
+                                    <input id="resourcelevel" name="resourcelevel" type="text" class="form-control" placeholder="级别" data-bind="value:Model().resourcelevel" />
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <th class="formTitle">资源路径</th>
+                                <td class="formValue">
+                                    <input id="resourceurl" name="resourceurl" type="text" class="form-control" placeholder="资源路径" data-bind="value:Model().resourceurl" />
+                                </td>
+                                <th class="formTitle">排序</th>
+                                <td class="formValue">
+                                    <input id="ordernum" name="ordernum" type="text" class="form-control" placeholder="排序" data-bind="value:Model().ordernum" />
+                                </td>
+                            </tr>
+                           
+                            
+                            <tr>
+                                <th class="formTitle">左图标</th>
+                                <td class="formValue">
+                                    <input id="resourceleftico" name="resourceleftico" type="text" class="form-control" placeholder="左图标" data-bind="value:Model().resourceleftico" />
+                                </td>
+                                <th class="formTitle">右图标</th>
+                                <td class="formValue">
+                                    <input id="resourcerightico" name="resourcerightico" type="text" class="form-control" placeholder="右图标" data-bind="value:Model().resourcerightico" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">样式</th>
+                                <td class="formValue">
+                                    <input id="resourceclass" name="resourceclass" type="text" class="form-control" placeholder="样式" data-bind="value:Model().resourceclass" />
+                                </td>
+                                <th class="formTitle">提示数</th>
+                                <td class="formValue">
+                                    <input id="resourcenumber" name="resourcenumber" type="text" class="form-control" placeholder="提示数" data-bind="value:Model().resourcenumber" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">脚本</th>
+                                <td class="formValue">
+                                    <input id="resourcescript" name="resourcescript" type="text" class="form-control" placeholder="脚本" data-bind="value:Model().resourcescript" />
+                                </td>
+                                <th class="formTitle">备注</th>
+                                <td class="formValue">
+                                    <input id="description" name="description" type="text" class="form-control" placeholder="备注" data-bind="value:Model().description" />
+                                </td>
+                            </tr>
+                            
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+#include("/WEB-INF/View/TemplateA/Shared/dialogFoot.html")
+
+#include("/WEB-INF/View/TemplateA/Shared/detailDialogHead.html")
+	<form id="Detailform">
+            <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">表单信息</h3>
+                    </div>
+                    <div class="panel-body" style="width: 98%;">
+                        <table class="form">
+                            <tr>
+                                <th class="formTitle">资源名称</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().resourcename"></label>
+                                </td>
+                                <th class="formTitle">资源类型</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().resourcetype"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">资源所属</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().resourceowner"></label>
+                                </td>
+                                <th class="formTitle">资源级别</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().resourcelevel"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">资源路径</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().resourceurl"></label>
+                                </td>
+                                <th class="formTitle">排序</th>
+                                <td class="formValue">
+                                    <label class="form-control" data-bind="text:Model().ordernum"></label>
+                                </td>
+                            </tr>
+                            
+                             <tr>
+                                <th class="formTitle">左图标</th>
+                                <td class="formValue">
+                                	<label class="form-control" data-bind="text:Model().resourceleftico"></label>
+                                </td>
+                                <th class="formTitle">右图标</th>
+                                <td class="formValue">
+                                	<label class="form-control" data-bind="text:Model().resourcerightico"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">样式</th>
+                                <td class="formValue">
+                                	<label class="form-control" data-bind="text:Model().resourceclass"></label>
+                                </td>
+                                <th class="formTitle">提示数</th>
+                                <td class="formValue">
+                                	<label class="form-control" data-bind="text:Model().resourcenumber"></label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">脚本</th>
+                                <td class="formValue">
+                               		<label class="form-control" data-bind="text:Model().resourcescript"></label>
+                               </td>
+                                <th class="formTitle">备注</th>
+                                <td class="formValue">
+                                	<label class="form-control" data-bind="text:Model().description"></label>
+                                </td>
+                            </tr>
+                            
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>  
+#include("/WEB-INF/View/TemplateA/Shared/detailDialogFoot.html")
+#end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

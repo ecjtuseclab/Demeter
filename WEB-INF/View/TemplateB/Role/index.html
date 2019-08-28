@@ -1,0 +1,196 @@
+#@layout()
+#define main()    
+ <script>
+  //閻熸瑦甯熸竟濠冦亜閻㈠憡妗�
+        $(function () {
+            gridList();
+        })
+       function gridList() {
+        	//濡ゅ倹顭囨鍥蓟閵夘煈鍤勬俊顖楀墲濠拷
+        	var template1 =
+             {
+        		"groupOp": "AND",
+                 "rules": [
+				 { "field": "id", "op": "ne", "data": "73" },         
+                 { "field": "rolename", "op": "bw", "data": "閻熸瑦甯熸竟濠囧触瀹ュ泦锟�" },
+                 //{ "field": "rolecode", "op": "gt", "data": "20" }
+                 ]
+             };
+
+             var template2 =
+             {
+            	 "groupOp": "AND",
+                 "rules": [
+                   { "field": "rolecode", "op": "eq", "data": "10" },
+                   { "field": "rolename", "op": "le", "data": "缂佺媴绱曢幃濠囧川閿燂拷" }
+                 ]
+             };
+          
+            var $gridList = $("#gridList");
+            $gridList.dataGrid({
+            	url: "Role/getModels",
+                height: $(window).height() - 126,
+                //pager: 'pager',
+                //rowList: [10, 20, 30], //闁告瑯鍨甸惃鐔煎极鐎涙妲ㄥ銈呯仛濡绮堥搹瑙勭暠閻犱焦婢樼紞宥夊极閿燂拷   
+                //rowNum: 40,
+                pager: "#gridPager",
+                sortname: 'id',
+               	//search:true,
+                viewrecords: true,
+                colModel: [
+                    { label: "id", name: "id", width:50,hidden: false, key: true },
+	                { label: '角色名称', name: 'rolename', width: 150, align: 'left' },
+	                { label: '角色编码', name: 'rolecode', width: 150, align: 'left' },
+	                { label: '角色有效时间', name: 'roleexpiretime', width: 150, align: 'left' }
+                ]
+            });
+            
+            
+           	$gridList.jqGrid('navGrid', '#gridPager',
+            		{edit: false, add: false, del: false },
+            		{},//edit options
+            		{},//add options
+            		{},//del options
+            		{  //search options
+            			beforeSearch:function(data){
+            				console.log(data);
+            				alert(data);
+            			},
+            			multipleSearch: true,
+            			multipleGroup: true,
+            			showQuery: true,
+            			// set the names of the template
+            			"tmplNames": ["12", "123"],
+            			// set the template contents
+            			"tmplFilters": [template1, template2]
+            		});
+            
+            $("#btn_search").click(function () {
+            	var query = $(".query").val();
+                $gridList.jqGrid('setGridParam', {
+                    postData: { keyword: $("#txt_keyword").val() },
+                }).trigger('reloadGrid');
+            });
+
+        }
+        
+        function btn_add() {
+            $.modalOpen({
+                id: "Form",
+                title: "添加角色",
+                url: "Role/getFormPage",
+                width: "700px",
+                height: "510px",
+                btn:null
+            });
+        }
+       
+        function btn_edit() {
+            var id = $("#gridList").jqGridRowValue().id;
+            $.modalOpen({
+                id: "Form",
+                title: "修改角色",
+                url: "Role/getFormPage?id=" + id,
+                width: "700px",
+                height: "510px",
+                callBack: function (iframeId) {
+                    top.frames[iframeId].submitForm();
+                }
+            });
+        }
+        
+        function btn_delete() {
+            $.deleteForm({
+                url: "Role/deleteModels",
+                param: { id: $("#gridList").jqGridRowValue().id },
+                success: function (data) {
+                	console.log(data);
+                    $.currentWindow().$("#gridList").resetSelection();
+                    $.currentWindow().$("#gridList").trigger("reloadGrid");
+                },
+                error:function(data){
+                	console.log(data);
+                }
+            })
+        }
+
+        function btn_details() {
+            var id = $("#gridList").jqGridRowValue().id;
+            $.modalOpen({
+                //id: "Details",
+                id: "Details",
+                title: "角色详情",
+                url: "Role/getDetails?id=" + id,
+                width: "700px",
+                height: "510px",
+                btn: null,
+            });
+        }
+        function btn_copyandpaste() {
+        	console.log("ids="+$("#gridList").jqGridRowValue().id);
+            $.copyAndPasteForm({
+                url: "Role/copyAndPaste?ids="+ $("#gridList").jqGridRowValue().id,
+                //param: { ids: $("#gridList").jqGridRowValue().id },
+                success: function (data) {
+                	console.log(data);
+                    $.currentWindow().$("#gridList").trigger("reloadGrid");
+                },
+                error:function(data){
+                	console.log(data);
+                },
+                complete:function(data){
+                	console.log(data);
+                }
+            })
+        }
+</script>
+
+
+<div class="topPanel">
+    <div class="toolbar">
+        <div class="btn-group">
+            <a class="btn btn-primary" onclick="$.reload()"><span class="glyphicon glyphicon-refresh"></span></a>
+        </div>
+        <div class="btn-group">
+            <!-- <a id="add" authorize="yes" class="btn btn-primary dropdown-text" onclick="btn_add()"><i class="fa fa-plus"></i>闁哄倹婢樼紓鎾舵喆閹烘洖顥�</a> -->
+            <a id="add" authorize="yes" class="btn btn-primary" onclick="btn_add()"><i class="fa fa-plus"></i>新增</a>
+        </div>
+        <div class="operate">
+            <ul class="nav nav-pills">
+                <li class="first">第<span>1</span>页</li>
+                <li><a id="edit"  authorize="yes" onclick="btn_edit()"><i class="fa fa-pencil-square-o"></i>编辑</a></li>
+                <li><a id="delete"  authorize="yes" onclick="btn_delete()"><i class="fa fa-trash-o"></i>删除</a></li>
+                <li><a id="NF-Details"  authorize="yes" onclick="btn_details()"><i class="fa fa-search-plus"></i>详情</a></li>
+               <li><a id="NF-copyAndPaste" onclick="btn_copyandpaste()"><i class="fa fa-search-plus"></i>复制和粘贴</a></li>
+            </ul>
+            <a href="javascript:;" class="close"></a>
+        </div>
+    </div>
+    <div class="search">
+        <table>
+            <tr>
+                <td style="padding-right: 3px;">
+                    <div class="btn-group">
+                        <a class="btn btn-primary dropdown-text" onclick="advance_search()">高级搜索</a>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input id="txt_keyword" type="text" class="form-control" placeholder="关键字" style="width: 200px;">
+                        <span class="input-group-btn">
+                            <button id="btn_search" type="button" class="btn  btn-primary"><i class="fa fa-search"></i></button>
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="gridPanel">
+    <table id="gridList"></table>
+     <div id="gridPager" class="scroll"></div> 
+      <table id="grps3"></table>
+    <div id="pgrps3"></div>
+</div>
+#end

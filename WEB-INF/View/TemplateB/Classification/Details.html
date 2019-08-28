@@ -1,0 +1,58 @@
+#@layout()
+#define main()
+
+<!-- 配置文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.config.js"></script>
+<!-- 编辑器源码文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.all.js"></script>
+
+
+<script>
+    var keyValue = $.request("keyValue");
+    $(function () {
+    	
+    	UE.delEditor('Content');
+        if (!!keyValue) {
+            $.ajax({
+            	type:"post",
+                url: "getFormJson?keyValue="+keyValue,
+                //data: { keyValue: keyValue },
+                //dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form1").formSerialize(data);
+                }
+            });
+        }
+        <!-- 实例化编辑器 -->
+        var ue = UE.getEditor('describe', { initialFrameHeight: 500 ,readonly: true});
+    });
+    
+</script>
+
+<div id="form" style="border: 1px solid #ddd;">
+    <form id="form1">
+        <div style="margin-right: 30px;">
+            <table class="form">
+                <tr>
+                    <th class="formTitle">标题</th>
+                    <td class="formValue">
+                        <input id="classificationname" name="classificationname" readonly="readonly" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">内容</th>
+                    <td class="formValue">
+                    
+						<textarea id="describe" name="describe" type="text/plain"  style="width: 100%"></textarea>
+                        <!-- <textarea id="content" name="content" style="width: 100%"></textarea>-->
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+    <div align="right" style="margin: 5px 30px 5px 0">
+        <a class="layui-layer-btn1 btn btn-danger" onclick="history.go(-1)">返回</a>
+    </div>
+</div>
+#end

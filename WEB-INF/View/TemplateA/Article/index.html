@@ -1,0 +1,216 @@
+#@layout()
+#define main()
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wizard/wizard.css'/>
+<script src="/Public/Theme/Ace/wizard/wizard.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wdtree/tree.css'/>
+<script src="/Public/Theme/Ace/wdtree/tree.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/select2/select2.min.css'/>
+<script src="/Public/Theme/Ace/select2/select2.min.js"></script> 
+
+<script>
+var _vm;
+$(function () {
+    var vm = new ViewModel();
+    _vm = vm;
+    ko.applyBindings(vm);
+    vm.Init();
+});
+
+function ViewModel() {
+    var me = this;
+    ViewModelBase.call(me);
+    vmExtend.call(me);//读取所有数据
+
+    //me.DeleteUrl = "../index.ashx?ctrl=article&action=DeleteForm";
+    me.DeleteUrl = "Article/deleteModels";
+    me.Dialog = new Dialog(me);
+
+    //详情页
+    me.DetailDialog = new DetailDialog(me);
+    me.Detail = function () {
+        me.DetailDialog.Open(me.DataTable.SelectedModel(), "详情");
+    }
+}
+function vmExtend() {
+    var me = this;
+
+    me.Init = function () {
+        me.LoadModels();
+    }
+
+    me.LoadModels = function (page) {
+        me.DataTable.SelectedModel(null);
+        var params = me.SearchModel();
+        
+        var CurPage = me.DataTable.CurrentPage();
+        params.page = page || (CurPage === 0 ? 1 : CurPage);
+        params.rows = 20;
+
+        $ace.get("Article/getModels", params, function (result) {
+            me.DataTable.SetPagedData(result.Data);
+        }
+      );
+    }
+}
+function Dialog(vm) {
+    var me = this;
+    DialogBase.call(me);
+    me.OnOpen = function () {
+    	
+    	var actionId = 0;
+        me.IsShow(false);
+        var model = me.EditModel();
+        if (model) {
+            var bindModel = $ko.toJS(model);
+            me.Model(bindModel);
+            //选中的动作ID
+            actionId = me.Model().id;
+        }
+        else {
+            me.Model({ IsEnabled: true });
+        }
+        
+        
+        location.href = 'Article/getFormPage?keyValue=' + actionId;
+
+    }
+}
+
+//详情页对话框设置
+function DetailDialog() {
+    var me = this;
+    DialogBase.call(me);
+
+    me.OnOpen = function () {
+        //将“保存”按钮隐藏
+        me.ShowSaveButton(false);
+        var model = me.EditModel();
+        if (model) {
+            var bindModel = $ko.toJS(model);
+            me.Model(bindModel);
+        }
+        else {
+            me.Model({});
+        }
+        //选中的动作ID
+        var actionId = me.Model().id;
+
+        location.href = 'Article/getDetails?keyValue=' + actionId;
+        
+    }
+}
+</script>
+<div class="topPanel">
+	<div class="toolbar">
+		<div class="btn-group">
+			<a class="btn btn-primary" onclick="$ace.reload()"><span
+				class="glyphicon glyphicon-refresh"></span></a>
+		</div>
+		<div class="btn-group">
+			<button class="btn btn-primary"
+				data-bind="click:Edit,attr:{disabled:!DataTable.SelectedModel()}">
+				<i class="fa fa-pencil-square-o"></i>修改
+			</button>
+            <button class="btn btn-primary" 
+            	data-bind="click:Detail,attr:{disabled:!DataTable.SelectedModel()}">
+            	<i class="fa fa-pencil-square-o"></i>详情
+            </button>
+			<button class="btn btn-primary"
+				data-bind="click:Delete,attr:{disabled:!DataTable.SelectedModel()}">
+				<i class="fa fa-trash-o"></i>删除
+			</button>
+			<button class="btn btn-primary" data-bind="click:Add">
+				<i class="fa fa-plus"></i>新增
+			</button>
+		</div>
+	</div>
+	<div class="search">
+		<table>
+			<tr>
+				<td>
+					<div class="input-group">
+						<input id="txt_keyword" type="text" class="form-control"
+							placeholder="文章标题" style="width: 200px;"
+							data-bind="value:SearchModel().keyword"> <span
+							class="input-group-btn">
+							<button id="btn_search" type="button" class="btn  btn-primary"
+								data-bind="click:Search">
+								<i class="fa fa-search"></i>
+							</button>
+						</span>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+
+<div class="table-responsive">
+	<table class="table table-hover" data-bind="with:DataTable">
+		<thead>
+			<tr>
+				<th style="width: 20px;"></th>
+				<th>ID</th>
+				<th>标题</th>
+				<th>作者</th>
+				<th>分类</th>
+			</tr>
+		</thead>
+		<tbody data-bind="foreach:Models">
+			<tr data-bind="click:$parent.SelectRow">
+				<td data-bind="text:$parent.GetOrdinal($index())"></td>
+				<td data-bind="text:id"></td>
+				<td data-bind="text:title"></td>
+				<td data-bind="text:author"></td>
+				<td data-bind="text:classificationid"></td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="999" align="center">
+					<div class="fx-page">
+						<!-- ko if: CurrentPage()!=1 -->
+						<a class="fx-page-span" href="javascript:;"
+							data-bind="click:ToPage.bind($data,CurrentPage()-1)">上一页</a>
+						<!-- /ko -->
+						<!-- ko if: ShowFirstPage() -->
+						<a class="fx-page-span" href="javascript:;" title="共"
+							data-bind="click:ToPage.bind($data,1),text:1"></a> <span
+							class="fx-page-span">...</span>
+						<!-- /ko -->
+						<!-- ko foreach:ShowPages -->
+						<!-- ko if: $data==$parent.CurrentPage() -->
+						<span class="fx-page-span fx-page-curr" data-bind="text:$data"></span>
+						<!-- /ko -->
+						<!-- ko if: $data!=$parent.CurrentPage() -->
+						<a class="fx-page-span" href="javascript:;"
+							data-bind="click:$parent.ToPage.bind($data,$data),text:$data"></a>
+						<!-- /ko -->
+						<!-- /ko -->
+						<!-- ko if: ShowLastPage() -->
+						<span class="fx-page-span">...</span> <a class="fx-page-span"
+							href="javascript:;" title="到"
+							data-bind="click:ToPage.bind($data,TotalPage()),text:TotalPage()"></a>
+						<!-- /ko -->
+						<!-- ko if: CurrentPage()<TotalPage() -->
+						<a class="fx-page-span" href="javascript:;"
+							data-bind="click:ToPage.bind($data,parseInt(CurrentPage())+1)">下一页</a>
+						<!-- /ko -->
+
+						<span class="fx-page-total">&nbsp;共<span
+							class="fx-page-total" data-bind="text:TotalCount"></span>条
+						</span> <span class="fx-page-total">到第<input type="number"
+							min="1" onkeyup="this.value=this.value.replace(/\D/, '');"
+							data-bind="value:SkipPage">页
+							<button type="button" class="fx-page-btn"
+								data-bind="click:ToPage.bind($data,SkipPage())">
+								确定
+								</button></span>
+					</div>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+</div>
+
+#end

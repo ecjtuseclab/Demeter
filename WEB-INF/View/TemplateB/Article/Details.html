@@ -1,0 +1,87 @@
+#@layout()
+#define main()
+
+<!-- 配置文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.config.js"></script>
+<!-- 编辑器源码文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.all.js"></script>
+
+<script>
+    var keyValue = $.request("keyValue");
+    $(function () {
+        initControl();
+    	UE.delEditor('Content');
+        if (!!keyValue) {
+            $.ajax({
+            	type:"post",
+                url: "getFormJson?keyValue="+keyValue,
+                //data: { keyValue: keyValue },
+                //dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form1").formSerialize(data);
+                }
+            });
+        }
+        <!-- 实例化编辑器 -->
+        var ue = UE.getEditor('content', { initialFrameHeight: 500 ,readonly: true});
+    });
+    function initControl() {
+    	
+        $("#classificationid").bindSelect({
+            url: "getTreeSelectJson",
+        });
+    }
+    
+</script>
+
+<div id="form" style="border: 1px solid #ddd;">
+    <form id="form1">
+        <div style="margin-right: 30px;">
+            <table class="form">
+                <tr>
+                    <th class="formTitle">标题</th>
+                    <td class="formValue" colspan="3">
+                        <input id="title" name="title" readonly="readonly" type="text" class="form-control" />
+                    </td>
+                    <th class="formTitle" style="display:none;">id</th>
+                    <td class="formValue" style="display:none;">
+                        <input id="id" name="id" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">作者</th>
+                    <td class="formValue">
+                    	<input id="author" name="author" type="text" readonly="readonly" class="form-control" />
+                    </td>
+                    <th class="formTitle">类别</th>
+                    <td class="formValue">
+                    	<select id="classificationid" name="classificationid" class="form-control required">
+                            <option value="">==请选择==</option>
+                            <option value="1" title="1">1</option>
+                            <option value="2" title="2">2</option>
+                            <option value="3" title="3">3</option>
+                            <option value="4" title="4">4</option>
+                        </select>
+                    </td>
+                    <th class="formTitle" style="display:none;">创建时间</th>
+                    <td class="formValue" style="display:none;">
+                        <input id="inserttime" name="inserttime" type="text" class="form-control" />
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">内容</th>
+                    <td class="formValue" colspan="3">
+                    
+						<textarea id="content" name="content" type="text/plain"  style="width: 100%"></textarea>
+                        <!-- <textarea id="content" name="content" style="width: 100%"></textarea>-->
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+    <div align="right" style="margin: 5px 30px 5px 0">
+        <a class="layui-layer-btn1 btn btn-danger" onclick="history.go(-1)">返回</a>
+    </div>
+</div>
+#end

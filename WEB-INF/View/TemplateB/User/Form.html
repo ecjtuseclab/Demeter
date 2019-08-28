@@ -1,0 +1,132 @@
+#@layout()
+#define main()
+<script>
+    var id = $.request("id");
+    $(function () {
+        initControl();
+        if (!!id) {
+            $.ajax({
+                url: "getFormJson",//__ROOT__/Admin/User/
+                data: { userid: id  },
+                dataType: "json",
+                async: false,
+                success: function (data) {
+                    $("#form1").formSerialize(data);
+                    $("#password").attr('disabled', 'disabled');
+                }
+            });
+        }
+    });
+    
+    function initControl() {
+        $('#wizard').wizard().on('change', function (e, data) {
+            var $finish = $("#btn_finish");
+            var $next = $("#btn_next");
+            if (data.direction == "next") {
+                switch (data.step) {
+                    case 1:
+                        if (!$('#form1').formValid()) {
+                            return false;
+                        }
+                        break;
+                    case 2:
+                        if (!$('#form1').formValid()) {
+                            return false;
+                        }
+                        $finish.show();
+                        $next.hide();
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                $finish.hide();
+                $next.show();
+            }
+        });
+      $("#rolelist").treeview({
+            height: 444,
+            showcheck: true,
+            url: "getPermissionRoleTree",//__ROOT__/Admin/User/
+            param: {userid:id }
+        });
+        $("#grouplist").treeview({
+            height: 444,
+            showcheck: true,
+            url: "getPermissionGroupTree",
+            param: { userid:id }
+        });
+}
+
+    function submitForm() {
+        if (!$('#form1').formValid()) {
+            return false;
+        }
+        var postData = $("#form1").formSerialize();
+        var newusername=$(".username").val();
+        
+        var newpassword=$(".password").val();
+        var roleData = [];
+        roleData = String($("#rolelist").getCheckedNodes());
+        var groupdata = [];
+        groupdata = String($("#grouplist").getCheckedNodes());
+        postData.id = id;
+        var submit_type="addModels";
+        if (id !== null && id !== undefined && id!== '') {
+        	submit_type="updateModels";
+        }
+        $.submitForm({
+            url: submit_type+"?id=" + id + "&rolelist=" + roleData + "&grouplist=" + groupdata,//__ROOT__/Admin/User/
+            param: postData,
+            success: function () {
+                $.currentWindow().$("#gridList").trigger("reloadGrid");
+            }
+        })
+    }
+</script>
+
+<form id="form1">
+    <div class="widget-body">
+        <div id="wizard" class="wizard" data-target="#wizard-steps" style="border-left: none; border-top: none; border-right: none;">
+            <ul class="steps">
+                <li data-target="#step-1" class="active"><span class="step">1</span>基本信息<span class="chevron"></span></li>
+                <li data-target="#step-2"><span class="step">2</span>角色<span class="chevron"></span></li>
+                <li data-target="#step-3"><span class="step">3</span>分组<span class="chevron"></span></li>
+            </ul>
+        </div>
+        <div class="step-content" id="wizard-steps" style="border-left: none; border-bottom: none; border-right: none;">
+            <div class="step-pane active" id="step-1" style="margin: 10px; margin-bottom: 0px;">
+               <div class="panel panel-default">
+                   <div class="panel-body" style="width: 98%;">
+                        <table class="form">
+                            <tr>
+                                <th class="formTitle">姓名<span style="color:red;">*</span></th>
+                                <td class="formValue">
+                                    <input id="username" name="username" type="text" class="form-control required" placeholder="请输入用户名" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="formTitle">密码<span style="color:red;">*</span></th>
+                                <td class="formValue">
+                                    <input id="password" name="password" type="text" class="form-control required" placeholder="请输入用户密码" value="123456"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="step-pane" id="step-2">
+                <div id="rolelist"></div>
+            </div>
+            <div class="step-pane" id="step-3">
+                <div id="grouplist"></div>
+            </div>
+        </div>
+        <div class="form-button" id="wizard-actions">
+            <a id="btn_last" disabled class="btn btn-default btn-prev">上一步</a>
+            <a id="btn_next" class="btn btn-default btn-next">下一步</a>
+            <a id="btn_finish" class="btn btn-default" style="display: none;" onclick="submitForm()">完成</a>
+        </div>
+    </div>
+</form>
+#end

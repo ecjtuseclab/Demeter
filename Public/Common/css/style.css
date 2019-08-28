@@ -1,0 +1,246 @@
+
+/*head*/
+.head{
+    height: 128px;
+    background-color: #003478;
+    width: 100%;
+    min-width: 1250px;
+}
+
+.navMenu {
+	height: 28px;
+    width: 100%;
+    min-width: 1250px;
+	overflow:hidden;
+	padding:8px 0 0 15px;
+
+    margin: 0 auto;
+    width: 1184px;
+    font-size: 14px;
+}
+.navMenu ul {
+	float:left;
+	height: 22px;
+}
+.navMenu ul li {
+    font:14px;
+	float:left;	
+	height: 22px;
+    list-style:none;
+	margin-right: 10px;
+	margin-left: -3px;
+	padding-left: 10px;
+    
+}
+.navMenu ul li a {
+	color: #FFF;
+	height: 22px;
+	text-decoration:none;
+	display: inline-block;
+	position: relative;
+}
+.navMenu ul li a.hover {
+	color:#DEFF01;
+	height: 22px;
+	text-decoration:none;
+	display: inline-block;
+	position: relative;
+}
+
+
+.content {
+    margin: 0 auto;
+    /*padding: 25px 0;*/
+    width: 1184px;
+    font-size: 14px;
+}
+.content a {
+    color: #2a2a2a;
+}
+.content a:hover {
+    color: green;
+}
+
+
+
+.clear{
+    clear: both;
+    height: 0;
+}
+.foot {
+    position: relative;
+    min-height: 80px;
+    background-color: #003478;
+    width: 100%;
+    min-width: 1250px;
+}
+.foot div {
+    width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 10px 0;
+}
+.foot p {
+    color: white;
+    font-size: 12px;
+    height: 18px;
+    letter-spacing: 0.1em;
+}
+
+.curr_menu {
+    padding: 10px 15px;
+    background: #003478;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+.nav-left {
+    border-bottom: 1px solid #ddd;
+}
+.nav-left>li {
+    border: 1px solid #eee;
+}
+.intro {
+    padding-left:30px;
+}
+.intro-header {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+}
+.page-title {
+    font-size: 24px;
+    border-bottom: 2px solid #003478;
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: -1px;
+}
+.breadcrumb>li {
+    display: inline-block;
+}
+.bottom {
+    padding: 40px 0;
+    background: #F6F6F6;
+}
+.bottom h4
+{
+    border-bottom: 2px solid #003478;
+    padding-bottom: 10px;
+}
+.news_content {
+    padding:15px 100px;
+}
+.news_title {
+    margin-bottom:15px;
+}
+.news_title h3{
+    text-align:center;
+    padding-bottom:10px;
+    border-bottom:2px dotted #003478;
+}
+.Image_content {
+    padding:5px 100px;
+}
+.Image_content img {
+    width:440px;
+    height:260px;
+    margin:0 158px;
+}
+.Image_content h5 {
+    border-bottom:2px dotted #003478;
+    padding:10px 20px;
+    background:url(/Templates/Theme/img/samples/dt.gif) no-repeat left center;
+}
+.fLinks li {
+    float: left;
+    font-size: 15px;
+    margin: 5px 10px;
+}
+ .fLinks li a {
+     color:#2a2a2a;
+    }
+ .fLinks li a:hover {
+    color: green;
+}
+.icon li {
+    float:left;
+    position:relative;
+}
+.icon li div:first-child{
+    width:82px;
+    height:82px;
+    margin:5px 24px;
+    cursor:pointer;
+}
+.qq_btn {
+    background: url(/Public/Common/img/samples/Wechaticon.png);
+}
+.qq_btn:hover {
+    background:url(/Public/Common/img/samples/Wechaticon.png);
+    background-position:0px -84px;
+}
+.sina_btn {
+    background:url(/Public/Common/img/samples/Wechaticon.png);
+    background-position:-84px 0px;
+}
+.sina_btn:hover {
+    background:url(/Public/Common/img/samples/Wechaticon.png);
+    background-position:-84px 134px;
+}
+.wechat_btn {
+    background:url(/Public/Common/img/samples/Wechaticon.png);
+    background-position:-168px 0px;
+}
+.wechat_btn:hover {
+    background:url(/Public/Common/img/samples/Wechaticon.png);
+    background-position:-168px 134px;
+}
+.qrcode {
+    position:absolute;
+    bottom:-20px;
+    right:85%;
+    width:200px;
+    height:200px;
+}
+.qrcode img {
+    max-width:200px;
+}
+.myside{
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 30px;
+    padding: 10px;
+    line-height: 30px;
+    font-size: 20px;
+    text-align: right;
+    background: url(/Templates/Theme/img/samples/sidebgcolor.png);
+}
+.slidepoint {
+    bottom: -8px;
+    left: 35px;
+}
+.newsslide{
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 35px;
+    padding: 8px;
+    line-height: 20px;
+    font-size: 14px;
+    background: url(/Templates/Theme/img/samples/sidebgcolor.png);
+}
+.newsslide a {
+    color:white;
+}
+.newspoint {
+    bottom: -8px;
+}
+.curument {
+    background-color:#eee;
+}
+.ui-jqgrid {
+    border:none;
+}
+.ui-jqgrid table{
+    border:none;
+}

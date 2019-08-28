@@ -1,0 +1,82 @@
+#@layout()
+#define main()
+<script>
+    var id = $.request("id");
+    $(function () {
+        initControl();
+        $.ajax({
+            url: "getFormJson",
+            data: { userid: id },
+            dataType: "json",
+            async: false,
+            success: function (data) {
+                $("#form1").formSerialize(data);
+                $("#form1").find('.form-control,select,input').attr('readonly', 'readonly');
+                $("#form1").find('div.ckbox label').attr('for', '');
+            }
+        });
+    });
+    function initControl() {
+        $('#wizard').wizard().on('change', function (e, data) {
+            var $next = $("#btn_next");
+            if (data.direction == "next") {
+                switch (data.step) {
+                    case 1:
+                        $next.attr('disabled');
+                        break;
+                    default:
+                        break;
+                    }
+            } 
+        });
+        //$("#rolelist").treeview({
+        //    height: 444,
+        //    showcheck: true,
+        //    url: "/SystemManage/User/getRolelist",
+        //    param: { userId: keyValue }
+        //});
+        //$("#grouplist").treeview({
+        //    height: 444,
+        //    showcheck: true,
+        //    url: "/SystemManage/User/getGrouplist",
+        //    param: { userid: keyValue }
+        //});
+
+
+    }
+</script>
+
+<form id="form1">
+            <div style="padding-top: 20px; margin-right: 30px;">
+                <table class="form">
+                    <tr>
+                        <th class="formTitle">用户名</th>
+                        <td class="formValue">
+                            <input id="username" name="username" type="text" class="form-control required"  />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="formTitle">密码</th>
+                        <td class="formValue">
+                           <input id="password" name="password" type="password" class="form-control required" />
+                        </td>
+                    </tr>
+                   <tr>
+                        <th class="formTitle">角色列表</th>
+                        <td class="formValue">
+                           <input id="rolelist" name="rolelist" type="text" class="form-control required" />
+                        </td>
+                    </tr>
+                   <tr>
+                        <th class="formTitle">分组列表</th>
+                        <td class="formValue">
+                           <input id="grouplist" name="grouplist" type="text" class="form-control required" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+</form>
+#end
+
+
+

@@ -1,0 +1,74 @@
+#@layout()
+#define main()
+<script>
+    var id = $.request("id");
+    $(function () {
+        initControl();
+        $.ajax({
+            url: "getFormJson",
+            data: { id: id },
+            dataType: "json",
+            async: false,
+            success: function (data) {
+            	console.log(data);
+                $("#form1").formSerialize(data);
+                $("#form1").find('.form-control,input').attr('readonly', 'readonly');
+                $("#form1").find('select').attr('disabled', 'disabled');
+                $("#form1").find('div.ckbox label').attr('for', '');
+            },
+            error:function(data){
+            	console.log(data);
+            }
+        });
+    });
+
+    function initControl() {
+        $("#parentid").bindSelect({
+            url: "getTreeSelectJson",
+            success:function(data){
+            	console.log(data);
+            }
+        });
+    }
+
+</script>
+<form id="form1">
+    <div style="margin-top: 10px; margin-left: 10px; margin-right: 10px;">
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#">基本信息</a></li>
+            
+        </ul>
+        <div style="padding-top: 20px; margin-right: 30px;">
+           <table class="form">
+                <tr>
+                    <th class="formTitle">字典名称</th>
+                    <td class="formValue">
+                        <input id="propertyname" name="propertyname" type="text" class="form-control required" />
+                    </td>
+                    <th class="formTitle">字典值</th>
+                    <td class="formValue">
+                        <input id="propertyvalue" name="propertyvalue" type="text" class="form-control required" />
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">字典含义</th>
+                    <td class="formValue">
+                    <input id="propertymeaning" name="propertymeaning" type="text" class="form-control required" />
+                     
+                    </td>
+                    <th class="formTitle">备注</th>
+                    <td class="formValue">
+                        <input id="remark" name="remark" type="text" class="form-control required" />
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">上级</th>
+                    <td class="formValue">
+                        <input id="parentid" name="parentid" class="form-control required" />
+                    </td>          
+                </tr>
+            </table>
+        </div>
+    </div>
+</form>
+#end

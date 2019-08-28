@@ -1,0 +1,73 @@
+#@layout()
+#define main()
+
+<!-- 配置文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.config.js"></script>
+<!-- 编辑器源码文件 -->
+<script type="text/javascript" src="/Public/Common/UEditor/ueditor.all.js"></script>
+
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wizard/wizard.css'/>
+<script src="/Public/Theme/Ace//wizard/wizard.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/wdtree/tree.css'/>
+<script src="/Public/Theme/Ace/wdtree/tree.js"></script> 
+<link rel='stylesheet' type='text/css' href='/Public/Theme/Ace/select2/select2.min.css'/>
+<script src="/Public/Theme/Ace/select2/select2.min.js"></script> 
+
+<script>
+UE.delEditor('describe');
+var ue = UE.getEditor('describe', { initialFrameHeight: 500 ,readonly:true});
+var k = $.request("keyValue");
+var arraylist;
+
+$(function () {
+
+    $.ajax({
+    	type:"post",
+        url: "getFormJson",
+        data: { keyValue: k },
+        dataType: "json",
+        async: false,
+        success: function (data) {
+            arraylist = data;
+            //$("#form1").formSerialize(data);
+        }
+    });
+
+    var vm = new ViewModel();
+    ko.applyBindings(vm);
+});
+
+function ViewModel() {
+    var me = this;
+    me.model = ko.observable(arraylist);
+}
+</script>
+
+<div id="form" style="border: 1px solid #ddd;">
+    <form id="form1">
+        <div style="margin-right: 30px;">
+            <table class="form">
+                <tr>
+                    <th class="formTitle">分类名称</th>
+                    <td class="formValue" colspan="3">
+                        <input id="classificationname" name="classificationname" readonly="readonly"  type="text" class="form-control" data-bind="value:model().classificationname"/>
+                    </td>
+                    <th class="formTitle" style="display:none;">id</th>
+                    <td class="formValue" style="display:none;">
+                        <input id="id" name="id" readonly="readonly"  type="text" class="form-control" data-bind="value:model().id"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="formTitle">描述</th>
+                    <td class="formValue" colspan="3">
+						<textarea id="describe" name="describe" type="text/plain" style="width: 100%" data-bind="value:model().describe"></textarea>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+    <div align="right" style="margin: 5px 30px 5px 0">
+        <a class="layui-layer-btn1 btn btn-danger" onclick="history.go(-1)">返回</a>
+    </div>
+</div>
+#end

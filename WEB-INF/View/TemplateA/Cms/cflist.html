@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>文档</title>
+	<script src="__PUBLIC__/Ace/jquery/jquery-1.11.1.min.js"></script> 
+	<link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/css/framework-theme.css'/>
+	<link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/bootstrap/bootstrap.min.css'/>
+	<script src="__PUBLIC__/Ace/bootstrap/bootstrap.min.js"></script> 
+	
+	<link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/css/framework-font.css'/>
+	<link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/css/framework-ui.css'/>
+	<script src="__PUBLIC__/Ace/knockout/knockout-latest.js"></script> 
+	
+	
+	<script src="__PUBLIC__/Ace/knockout/knockout.mapping-latest.js"></script> 
+	<script src="__PUBLIC__/Ace/js/kohelper.js"></script> 
+	
+	<script src="__PUBLIC__/Ace/validate/jquery.validate.min.js"></script> 
+	<script src="__PUBLIC__/Ace/My97DatePicker/WdatePicker.js"></script> 
+	
+	<link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/dialog/dialog.css'/> 
+	<script src="__PUBLIC__/Ace/dialog/dialog.js"></script> 
+	<script src="__PUBLIC__/Ace/js/Hestia.js"></script> 
+	<script src="__PUBLIC__/Ace/js/ace.js"></script> 
+	
+    <link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/wdtree/tree.css'/>
+    <link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/select2/select2.min.css'/>
+    <link rel='stylesheet' type='text/css' href='__PUBLIC__/Ace/wizard/wizard.css'/>
+ 
+    <script src="__PUBLIC__/Ace/wdtree/tree.js"></script> 
+    <script src="__PUBLIC__/Ace/select2/select2.min.js"></script> 
+    <script src="__PUBLIC__/Ace/wizard/wizard.js"></script> 
+    <script type="text/javascript" src="__PUBLIC__/Ace/js/framework-ui.js"></script>
+
+    <link href="__PUBLIC__/Ace/css/cms.css" rel="stylesheet" />
+
+</head>
+<body>
+    <div class="head" >
+        <div class="container" style="font-size: 55px; color: white; line-height: 100px; ">
+            Hestia
+            <a href="/Hestia" style="font-size: 14px; color: white; line-height: 50px; float:right;margin-top:40px;">
+            <span class="glyphicon glyphicon-user"></span>管理登录</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="content">
+            <div class="row">
+                <div class="col-sm-2" style="padding: 0">
+
+                    <ul id="nav" class="nav nav-left">
+                        <li class="curr_menu">帮助文档</li>
+                        <volist name="cflist" id="vo">
+                            <li>
+                                <a href="__ROOT__/Admin/Cms/{$vo.type}?cfid={$vo.id}" title="{$vo.classificationname}">{$vo.classificationname}</a>
+                            </li>
+                        </volist>
+                    </ul>
+
+                </div>
+                <div class="col-sm-10" style="padding: 0">
+                    <div class="intro">
+                            <div class="intro-header">
+                                <span id="pagetitle" class="page-title">{$cfname}</span>
+                            </div>
+                            <div class="news_content">
+
+                                <table class="table table-hover">
+                                    <tbody >
+                        				<volist name="aclist" id="ac">
+		                                        <tr onclick="tr_click({$ac.classificationid})">
+		                                            <td style="width: 500px">{$ac.title}</td>
+		                                            <td style="width: 100px">{$ac.author}</td>
+		                                        </tr>
+                        				</volist>
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    	function tr_click(cfid) {
+    		location.href = '__ROOT__/Admin/Cms/form?cfid=' + cfid;
+	    };
+        $(function () {
+            $(".icon li").each(function () {
+                $(this).find("div:eq(0)").hover(
+                    function () { $(this).next().css('display', 'block') },
+                    function () { $(this).next().css('display', 'none') }
+                );
+            });
+        })
+    </script>
+    <div class="clear"></div>
+    <div class="bottom">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6" style="padding: 0">
+                    <h4>友情链接</h4>
+                    <ul class="fLinks">
+                        <li><a href="#">帮助</a></li>
+                    </ul>
+                </div>
+                <div class="col-sm-4 col-sm-offset-2" style="padding: 0">
+                    <h4>关注我们</h4>
+                    <ul class="icon">
+                        <li>
+                            <div class="qq_btn"></div>
+                            <div class="qrcode" style="display: none;">
+                                <img src="__PUBLIC__/Ace/img/qqChat.jpg" alt="QQ">
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="foot">
+        <div>
+            <p>系统工程与密码学研究所</p>
+        </div>
+    </div>
+</body>
+</html>
